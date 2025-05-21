@@ -1,0 +1,67 @@
+# ci stands for continues integration
+# this forlder structure is only for github . if we are using gitlab or any other we need to follow their rules
+
+name: Continuous Integration
+
+# this is trigger CI on push and PR for main branch only
+# on:
+#   push:
+#     branches: [ main ]
+#   pull_request:
+#     branches: [ main ]
+
+# this is trigger CI on all kinds of branches and PRs
+# on specify the type of action we are doing
+
+# we need to trigger the CI if we are pushing to any branch or we are raising a PR to any branch
+# as above commended code we can make to trigger on perticular branch
+on:
+  push:
+  pull_request:
+
+#
+jobs:
+  build:
+    # here we mention the server in which the code is running
+    runs-on: ubuntu-latest
+
+    # uses is very important keyword this define what kind of action we  are performing
+    steps:
+      - uses: actions/checkout@v2
+        # this part of code is used for the commit lint that has been added
+        with:
+          fetch-depth: 0 # Fetch all history for all branches and tags
+
+      #  its just a name we can add anything
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18.18.0'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Run format check
+        run: npm run format
+      # # this uses all are predefine
+      # - name: Check commit messages
+      #   uses: wagoid/commitlint-github-action@v3
+      #   with:
+      #     configFile: commitlint.config.cjs
+      # - name: Lint commit messages
+      #   run: |
+      #     npx commitlint --from=HEAD~10 --to=HEAD --config commitlint.config.cjs
+
+      - name: Get commit range
+        id: vars
+        run: echo "range=$(git rev-list --no-merges --first-parent ${{ github.event.before }}..${{ github.sha }})" >> $GITHUB_OUTPUT
+
+      - name: Lint commit messages
+        run: |
+          for commit in ${{ steps.vars.outputs.range }}; do
+          echo "Checking commit $commit"
+          git show -s --format=%B $commit | npx commitlint --config commitlint.config.cjs
+          done
