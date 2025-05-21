@@ -11,6 +11,9 @@ module.exports = {
 // -----------------
 
 // 'type-enum': disables the rule that restricts the type to a specific set of values.
+// 'type-empty': allows the type to be empty (so you could even have a message like : just a message).
+
+// 'subject-empty': allows the subject (the part after the colon) to be empty.
 
 // Now, any word before the colon is accepted as the type.
 
