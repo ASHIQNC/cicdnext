@@ -20,7 +20,7 @@ export default function Home() {
             </code>
             .
           </li>
-          <li className="tracking-[-.01em]">dummmy dataa...........</li>
+          <li className="tracking-[-.01em]">dummmy dataa..hjjhjh..........</li>
         </ol>
 
         <div className="flex gap-4 items-center flex-col sm:flex-row">
