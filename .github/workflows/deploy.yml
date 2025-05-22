@@ -26,9 +26,6 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Deploy to prod url
-        # main is the branch name where new code is pushed
-
         # check on the github market place to gett the heroku
       - uses: nexterias/actions-vercel@v1
         with:
