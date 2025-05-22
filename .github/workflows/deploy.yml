@@ -9,7 +9,11 @@ jobs:
   # build the project first and deploy it
   build-and-deploy:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: read
+      deployments: write
+      statuses: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v2
         with:
