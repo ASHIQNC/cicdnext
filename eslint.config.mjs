@@ -84,6 +84,7 @@ const eslintConfig = [
     },
     rules: {
       'prettier/prettier': 'error',
+      '@next/next/no-img-element': 'off', // <-- DISABLE the img warning here
     },
   },
 ];

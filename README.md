@@ -1,36 +1,30 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Tenstack react query
 
-## Getting Started
+this package is used for fetching the api
+Link: https://tanstack.com/query/latest/docs/framework/react/installation
+npm i @tanstack/react-query
 
-First, run the development server:
+steps:
+after the above steps
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. create a provider.tsx file in component folder
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+example :
+'use client';
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { PropsWithChildren } from "react";
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+//query client is a cache which help us to keep track of the data
+const client=new QueryClient()
 
-## Learn More
+const Providers=({children}:PropsWithChildren<{}>)=>{
+// they contain react children and provide context to rest of the application
+return <QueryClientProvider client={client}>
+{children}
+</QueryClientProvider>
+}
 
-To learn more about Next.js, take a look at the following resources:
+export default Providers
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+2. Next go the layout.tsx and wrap with the provider

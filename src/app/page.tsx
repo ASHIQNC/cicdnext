@@ -1,10 +1,15 @@
 'use client';
+import ProductPage from '@/components/Products/Product';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Product } from '@/db';
 import { cn } from '@/lib/utils';
+import { useQuery } from '@tanstack/react-query';
+import { QueryResult } from '@upstash/vector';
+import axios from 'axios';
 import { ChevronDown, Filter } from 'lucide-react';
 import { useState } from 'react';
 // import Image from 'next/image';
@@ -23,7 +28,31 @@ export default function Home() {
     sort: 'none',
   });
 
-  console.log('filter', filter);
+  //fetching data
+
+  // for alternative request like "post" we can use useMutation
+  // usequery for getting data
+  const { data: products } = useQuery({
+    queryKey: ['products'],
+    queryFn: async () => {
+      //  <QueryResult<Product> :here we are mention the type
+      //queryresult is coming from upstash vector
+      const { data } = await axios.post<QueryResult<Product>[]>(
+        //this is the endpoint we are calling
+        //if we deploy in production we can use that url
+        //then the data will be the filter data
+        'api/products',
+        {
+          filter: {
+            sort: filter.sort,
+          },
+        }
+      );
+      return data;
+    },
+  });
+
+  console.log('prod', products);
   return (
     <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div className="flex items-baseline justify-between border-b  border-gray-200pb-6 pt-24">
@@ -76,6 +105,21 @@ export default function Home() {
           </button>
         </div>
       </div>
+
+      <section className="pb-24 pt-6">
+        <div className="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4">
+          {/* filters */}
+          <div></div>
+
+          {/* product */}
+
+          <ul className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+            {products?.map((product) => (
+              <ProductPage key={product.id} product={product.metadata!} />
+            ))}
+          </ul>
+        </div>
+      </section>
     </main>
   );
 }
