@@ -1,5 +1,11 @@
 'use client';
 import ProductPage from '@/components/Products/Product';
+import ProductSkeleton from '@/components/Products/ProductSkeleton';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,6 +13,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Product } from '@/db';
 import { cn } from '@/lib/utils';
+import { ProductState } from '@/lib/validators/product-validator';
+import { AccordionItem } from '@radix-ui/react-accordion';
 import { useQuery } from '@tanstack/react-query';
 import { QueryResult } from '@upstash/vector';
 import axios from 'axios';
@@ -23,8 +31,33 @@ const SORT_OPTIONS = [
   { name: 'Price: Low to High', value: 'price-asc' },
   { name: 'Price: High to Low', value: 'price-desc' },
 ] as const;
+
+const SUBCATEGORIES = [
+  { name: 'T-Shirts', selected: true, href: '#' },
+  { name: 'Hoodies', selected: false, href: '#' },
+  { name: 'Sweatshirts', selected: false, href: '#' },
+  { name: 'Accessories', selected: false, href: '#' },
+];
+
+const COLOR_FILTERS = {
+  id: 'color',
+  name: 'Color',
+  options: [
+    { value: 'white', label: 'White' },
+    { value: 'beige', label: 'Beige' },
+    { value: 'blue', label: 'Blue' },
+    { value: 'green', label: 'Green' },
+    { value: 'purple', label: 'Purple' },
+  ] as const,
+};
+const DEFAULT_CUSTOM_PRICE = [0, 100] as [number, number]; //while doing [number, number] type script always know the number can change
+// it is not always the 0, 100 it will change.but the length will no change
+
 export default function Home() {
-  const [filter, setFilter] = useState({
+  const [filter, setFilter] = useState<ProductState>({
+    color: ['beige', 'blue', 'green', 'purple', 'white'],
+    price: { isCustom: false, range: DEFAULT_CUSTOM_PRICE },
+    size: ['L', 'M', 'S'],
     sort: 'none',
   });
 
@@ -53,6 +86,42 @@ export default function Home() {
   });
 
   console.log('prod', products);
+  //here we are creating a function beacuse for the color and size we are using the same logic
+  // this funtion only apply for array values
+
+  // category can be color or size
+  // value can be the value like,
+  //for size the value will be small , medium etc
+  //for color the value will be the colors like blue ,green
+  const applyArrayFilter = ({
+    category,
+    value,
+  }: {
+    // we just need to omit the price, and sort value since its not and array
+    category: keyof Omit<typeof filter, 'price' | 'sort'>;
+    value: string; // "s" | "M" |"greeen" ,"white"  etc
+  }) => {
+    //check whether the filter checked is in the array or not
+    //"value as never": is used remove the typescript error
+
+    const isFilterApplied = filter[category].includes(value as never);
+
+    //if the value is there we should remove from the array
+    //if it is not checked that is not in the array then add the value
+
+    if (isFilterApplied) {
+      setFilter((prev) => ({
+        //store the previious value and change the category
+        ...prev,
+        [category]: prev[category].filter((v) => v !== value),
+      }));
+    } else {
+      setFilter((prev) => ({
+        ...prev,
+        [category]: [...prev[category], value],
+      }));
+    }
+  };
   return (
     <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div className="flex items-baseline justify-between border-b  border-gray-200pb-6 pt-24">
@@ -109,14 +178,81 @@ export default function Home() {
       <section className="pb-24 pt-6">
         <div className="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4">
           {/* filters */}
-          <div></div>
+          <div className="hidden lg:block">
+            <ul className="space-y-4 border-b border-gray-200 pb-6 text-sm font-medium text-gray-900">
+              {SUBCATEGORIES.map((category) => (
+                <li key={category.name}>
+                  {/* if button is disabled state cursor will not allow to click */}
+                  <button
+                    // as of now we only have tshrt so everything other will be disabled
+                    disabled={!category.selected}
+                    className="disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {category.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+
+            {/*filters  */}
+            <Accordion type="multiple" className="animate-none">
+              {/* color filters */}
+              <AccordionItem value="color">
+                <AccordionTrigger className="py-3 text-sm text-gray-400 hover:text-gray-500">
+                  <span className="font-medium text-gray-900">Color</span>
+                </AccordionTrigger>
+
+                <AccordionContent className="pt-6 animate-none">
+                  <ul className="space-y-4">
+                    {COLOR_FILTERS.options.map((option, index) => (
+                      <li key={option.value} className="flex items-center">
+                        <input
+                          onChange={() => {
+                            applyArrayFilter({
+                              category: 'color',
+                              value: option.value,
+                            });
+                          }}
+                          type="checkbox"
+                          id={`color-${index}`}
+                          className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        {/*  wwe give the id in htmlFor because we are telling html that this label belng to the input box above  */}
+                        <label
+                          // if namml eth egane htmlFor koduthillenkil we need to click exact the checkbox for selection
+                          htmlFor={`color-${index}`}
+                          className="ml-3 text-sm text-gray-600"
+                        >
+                          {option.label}
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
 
           {/* product */}
 
           <ul className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-            {products?.map((product) => (
-              <ProductPage key={product.id} product={product.metadata!} />
-            ))}
+            {products && products.length === 0
+              ? // Case 1: `products` exists but is an empty array
+                // Show a message indicating no data is available
+                'no data available'
+              : products
+                ? // Case 2: `products` exists and has data
+                  // Render each product using the `ProductPage` component
+                  products.map((product) => (
+                    <ProductPage key={product.id} product={product.metadata!} />
+                  ))
+                : // Case 3: `products` is `undefined` or `null` (likely still loading)
+                  // Show 12 skeleton loaders to indicate loading state
+                  //we need to map over the new array with length of 12 and fill with null value
+                  // for the first value we dont care and we only care about the index
+                  new Array(12)
+                    .fill(null)
+                    .map((_, i) => <ProductSkeleton key={i} />)}
           </ul>
         </div>
       </section>
