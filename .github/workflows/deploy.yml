@@ -29,6 +29,9 @@ jobs:
       # building our project
       - name: Build
         run: npm run build
+        env:
+          UPSTASH_VECTOR_REST_TOKEN: ${{ secrets.UPSTASH_VECTOR_REST_TOKEN }}
+          UPSTASH_VECTOR_REST_URL: ${{ secrets.UPSTASH_VECTOR_REST_URL }}
 
         # check on the github market place to gett the heroku
       - uses: nexterias/actions-vercel@v1
